@@ -171,4 +171,9 @@ public class PlayerMovement : MonoBehaviour
         currentBobbingSpeed = targetBobbingSpeed;
         currentBobbingAmount = targetBobbingAmount;
     }
+
+    public void doDamage()
+    {
+        Debug.Log("Player gets Damaged");
+    }
 }
