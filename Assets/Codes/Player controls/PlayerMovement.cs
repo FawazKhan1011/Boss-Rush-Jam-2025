@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -56,6 +57,9 @@ public class PlayerMovement : MonoBehaviour
     private bool isCrouching = false;
     public float heightTransitionSpeed = 5f;  // Speed for smooth crouch transition
 
+    // PLAYER HEALTH
+    [Space(10)]
+    [Header("Player Health")]
     private Vector3 originalCameraPosition;
     private float timer = 0f;
     private float currentSpeed;
@@ -63,11 +67,17 @@ public class PlayerMovement : MonoBehaviour
     private float currentBobbingAmount;
     private bool isRunning = false;
 
+    public int currentHealth;
+    public int maxHealth = 10;
+    public Slider slider;
+
     Vector3 velocity;
     bool isGrounded;
 
     void Start()
     {
+        currentHealth = maxHealth;
+        SetMaxHealth(maxHealth);
         originalCameraPosition = cameraTransform.localPosition;
         originalHeight = playerBody.localScale.y; // Store original Y size
         currentSpeed = speed;
@@ -172,8 +182,19 @@ public class PlayerMovement : MonoBehaviour
         currentBobbingAmount = targetBobbingAmount;
     }
 
-    public void doDamage()
+    public void doDamage(int damage)
     {
-        Debug.Log("Player gets Damaged");
+        currentHealth -= damage;
+        SetHealth(currentHealth);
+    }
+
+    public void SetMaxHealth(int health)
+    {
+        slider.value = health;
+        slider.maxValue = health;
+    }
+    public void SetHealth(int health)
+    {
+        slider.value = health;
     }
 }

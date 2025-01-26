@@ -12,7 +12,7 @@ public class AttackCollision : MonoBehaviour
         // Check if the collider belongs to the player and if damage hasn't been dealt yet
         if (other.CompareTag("Player") && !hasDamaged)
         {
-            player.doDamage();
+            player.doDamage(1);
             hasDamaged = true;  // Set flag to indicate damage has been dealt
         }
     }
