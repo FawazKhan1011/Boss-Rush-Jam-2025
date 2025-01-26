@@ -7874,7 +7874,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &490963678
 Transform:
   m_ObjectHideFlags: 0
@@ -8325,6 +8325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animator: {fileID: 95000010922808164}
   playerref: {fileID: 4768267755807835802}
+  damageCooldown: 5
 --- !u!65 &579406735
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -9896,13 +9897,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 801955564}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalRotation: {x: -0, y: -0.9975823, z: -0, w: -0.06949543}
+  m_LocalPosition: {x: 2.1256142, y: -6.2048693, z: 3.81}
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1411775967}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -189.597, z: 0}
 --- !u!114 &801955566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9916,13 +9917,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chaseCollider: {fileID: 579406732}
-  bodycolllider: {fileID: 29024242}
+  bodyCollider: {fileID: 29024242}
   animator: {fileID: 95000010922808164}
   eye: {fileID: 490963677}
   fog: {fileID: 25166165}
   aura: {fileID: 2102978280}
   player: {fileID: 2588562825068136618}
   agent: {fileID: 95000010922808167}
+  teleportPosition: {fileID: 1149392872}
+  transitionTime: 2
+  chaseDuration: 15
+  Boss: {fileID: 1000012440353236}
 --- !u!1001 &829445653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12907,6 +12912,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8fcb9d2d43929c04f8c70c38581418d4, type: 3}
+--- !u!1 &1149392871
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1149392872}
+  m_Layer: 0
+  m_Name: BossPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1149392872
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1149392871}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: -19.65, y: 8.861496, z: 68.54226}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1154909732
 GameObject:
   m_ObjectHideFlags: 0
@@ -52594,3 +52630,4 @@ SceneRoots:
   - {fileID: 181578057}
   - {fileID: 1310328734}
   - {fileID: 25166168}
+  - {fileID: 1149392872}
