@@ -10,6 +10,8 @@ public class TitleScreenCamera : MonoBehaviour
 
     void Start()
     {
+        FindAnyObjectByType<AudioManager>().Play("fire");
+        FindAnyObjectByType<AudioManager>().Play("music");
         Time.timeScale = 1f;
         defaultRotation = transform.eulerAngles; // Save initial rotation
     }

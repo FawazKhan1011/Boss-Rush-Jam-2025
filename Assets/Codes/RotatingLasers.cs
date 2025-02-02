@@ -18,7 +18,10 @@ public class RotatingLasers : MonoBehaviour
 
     private float currentLaserLength = 0f; // Current length of the laser
 
-
+    private void OnEnable()
+    {
+        FindAnyObjectByType<AudioManager>().Play("boost");
+    }
     private void Update()
     {
         // Rotate the laser system around the boss
@@ -56,5 +59,9 @@ public class RotatingLasers : MonoBehaviour
             collider.center = new Vector3(0, 0, length / 2); // Move the collider forward
             collider.size = new Vector3(collider.size.x, collider.size.y, length); // Update the length
         }
+    }
+    private void OnDisable()
+    {
+        FindAnyObjectByType<AudioManager>().Stop("boost");
     }
 }

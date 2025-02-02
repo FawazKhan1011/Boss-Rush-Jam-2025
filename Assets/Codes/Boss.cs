@@ -29,9 +29,14 @@ public class Boss : MonoBehaviour
 
     private bool isAttacking = false;
     public GameObject blackscreen;
+    public string soundname;
 
     void Start()
     {
+        FindAnyObjectByType<AudioManager>().Play("bossmusic");
+        FindAnyObjectByType<AudioManager>().Play("impact");
+        FindAnyObjectByType<AudioManager>().Play("rock");
+        FindAnyObjectByType<AudioManager>().Play("startboss");
         currentHealth = maxHealth;
         health.SetMaxHealth(maxHealth);
 
@@ -71,6 +76,20 @@ public class Boss : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("damage_001");
+           // FindAnyObjectByType<AudioManager>().Play("hurt");
+            int randomSound = Random.Range(1, 4); // Generates a random number between 1 and 3
+            switch (randomSound)
+            {
+                case 1:
+                    FindAnyObjectByType<AudioManager>().Play("hit");
+                    break;
+                case 2:
+                    FindAnyObjectByType<AudioManager>().Play("mhurt2");
+                    break;
+                case 3:
+                    FindAnyObjectByType<AudioManager>().Play("mhurt3");
+                    break;
+            }
             Debug.Log("Triggering: damage_001");
             StartCoroutine(ResetTriggerAfterDelay("damage_001", 1.0f));
         }
@@ -93,6 +112,7 @@ public class Boss : MonoBehaviour
 
     void Die()
     {
+        FindAnyObjectByType<AudioManager>().Stop("bossmusic");
         bodycollider.SetActive(false);
         aura.SetActive(false);
         DeactivateAllAttacks();
@@ -101,6 +121,8 @@ public class Boss : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("dead");
+            FindAnyObjectByType<AudioManager>().Play("bossdead");
+            StartCoroutine(deadsound());
         }
 
         Debug.Log("Boss has been defeated!");
@@ -111,6 +133,13 @@ public class Boss : MonoBehaviour
         StartCoroutine(DelayedSceneChange(15f, "Win"));
     }
 
+    private IEnumerator deadsound()
+    {
+        yield return new WaitForSeconds(5f);
+        FindAnyObjectByType<AudioManager>().Play("fall");
+        Debug.Log("Fall sound");
+
+    }
     public IEnumerator DelayedSceneChange(float delay, string scene)
     {
         yield return new WaitForSeconds(delay);
@@ -171,7 +200,7 @@ public class Boss : MonoBehaviour
 
     private IEnumerator Deadboss()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(4f);
         // Disable the boss GameObject
         gameObject.SetActive(false);
     }
@@ -213,6 +242,7 @@ public class Boss : MonoBehaviour
 
     private IEnumerator ActivateAttack(int attackChoice, float duration)
     {
+        FindAnyObjectByType<AudioManager>().Play("scream");
         GameObject attackObject = GetAttackObject(attackChoice);
 
         if (attackObject != null)

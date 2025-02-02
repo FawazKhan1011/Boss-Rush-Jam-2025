@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI; // Required for working with UI elements
 
 public class Death : MonoBehaviour
@@ -11,10 +12,14 @@ public class Death : MonoBehaviour
     private Image imageComponent;
     private float fadeDuration = 2.0f; // Duration of the fade-in effect
 
+    public string musicnamestart;
+
     // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.None;
+        EventSystem.current.SetSelectedGameObject(null);
+        FindAnyObjectByType<AudioManager>().Play(musicnamestart);
         Cursor.visible = true;
         if (imageObject != null)
         {

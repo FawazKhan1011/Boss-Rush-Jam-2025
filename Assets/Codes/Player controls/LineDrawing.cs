@@ -17,8 +17,11 @@ public class LineDrawing : MonoBehaviour
     private Vector3 centerPoint;
     private float lastCollisionCheckTime = 0f; // Track time for collision checks
 
-
     public Boss bossScript;
+
+    // New variable: the radius used to check for collisions along the line.
+    // Adjust as needed for your game’s scale.
+    public float collisionRadius = 0.1f;
 
     void Start()
     {
@@ -55,6 +58,7 @@ public class LineDrawing : MonoBehaviour
 
     void StartLine()
     {
+        FindAnyObjectByType<AudioManager>().Play("zap");
         linePoints.Clear();
         lineRenderer.positionCount = 0;
         isDrawing = true;
@@ -82,8 +86,9 @@ public class LineDrawing : MonoBehaviour
         }
     }
 
-   public void EndLine()
+    public void EndLine()
     {
+        FindAnyObjectByType<AudioManager>().Stop("zap");
         isDrawing = false;
 
         // Calculate the center of the line
@@ -132,23 +137,19 @@ public class LineDrawing : MonoBehaviour
 
     void CheckCollisions()
     {
-        for (int i = 0; i < linePoints.Count; i++)
+        // Use Physics.OverlapSphere to check if any line point is overlapping the boss collider
+        foreach (Vector3 point in linePoints)
         {
-            // Check if this point is within the boss's collider
-            if (boss != null)
+            // Get all colliders overlapping this point within collisionRadius
+            Collider[] hitColliders = Physics.OverlapSphere(point, collisionRadius);
+            foreach (Collider col in hitColliders)
             {
-                Collider bossCollider = boss.GetComponent<Collider>();
-                if (bossCollider != null)
+                if (boss != null && col.gameObject == boss.gameObject)
                 {
-                    // Use ClosestPoint for more accurate collision detection with MeshColliders
-                    Vector3 closestPoint = bossCollider.ClosestPoint(linePoints[i]);
-                    if (Vector3.Distance(linePoints[i], closestPoint) < 0.1f) // Adjust the threshold as needed
-                    {
-                        // Line hits the boss: stop shrinking and clear the line
-                        DealDamage();
-                        ClearLine();
-                        return; // Stop further shrinking and checking
-                    }
+                    // The line is actually hitting the boss: stop shrinking, deal damage, and clear the line.
+                    DealDamage();
+                    ClearLine();
+                    return;
                 }
             }
         }
@@ -170,8 +171,10 @@ public class LineDrawing : MonoBehaviour
         linePoints.Clear();
         isShrinking = false;
     }
+
     public void InstantClearLine()
     {
+        FindAnyObjectByType<AudioManager>().Stop("zap");
         if (isDrawing)
         {
             FindAnyObjectByType<AudioManager>().Play("glass1");

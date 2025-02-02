@@ -9,9 +9,18 @@ public class SceneChanger : MonoBehaviour
     public GameObject objectToDisable;
     public GameObject objectToEnable;
     public float fadeDuration = 0.5f; // Duration of fade effect
-
+    public string soundname;
     public void ChangeScene()
     {
+        FindAnyObjectByType<AudioManager>().Play(soundname);
+        StartCoroutine(changescene());
+    }
+
+    private IEnumerator changescene()
+    {
+        Time.timeScale = 1f; // Ensure game is running
+        Debug.Log("Attempting to load scene: " + sceneName);
+        yield return new WaitForSeconds(0.5f);
         SceneManager.LoadScene(sceneName);
     }
 
@@ -22,11 +31,24 @@ public class SceneChanger : MonoBehaviour
 
     public void QuitGame()
     {
+        FindAnyObjectByType<AudioManager>().Play(soundname);
+        StartCoroutine(quitgame());
+    }
+
+    private IEnumerator quitgame()
+    {
+        yield return new WaitForSeconds(0.5f);
         Application.Quit();
+    }
+
+    public void PlayHoverSound()
+    {
+        FindAnyObjectByType<AudioManager>().Play("hover");
     }
 
     private IEnumerator FadeOutAndSwitch()
     {
+        FindAnyObjectByType<AudioManager>().Play(soundname);
         if (objectToDisable != null)
         {
             CanvasGroup canvasGroup = objectToDisable.GetComponent<CanvasGroup>();

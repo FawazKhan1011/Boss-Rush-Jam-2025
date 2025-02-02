@@ -77,6 +77,7 @@ public class PlayerMovement : MonoBehaviour
     bool isGrounded;
     public GameObject bloodEffect; // Assign in the inspector
     public GameObject blackscreen;
+    bool isWalking = false;
 
     void Start()
     {
@@ -127,11 +128,45 @@ public class PlayerMovement : MonoBehaviour
             Running(isRunning);  // Only run if not crouching
         }
 
-        if(Input.GetButtonDown("Jump") && isGrounded && jumpWanted)
+        if (Input.GetButtonDown("Jump") && isGrounded && jumpWanted)
         {
+            FindAnyObjectByType<AudioManager>().Play("jump");
             velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
         }
+
+        // Detect player movement and play walking sound without IsPlaying
+        if (isGrounded && (x != 0 || z != 0))
+        {
+            if (!isWalking)  // Only play if not already walking
+            {
+                FindAnyObjectByType<AudioManager>().Play("walk");
+                isWalking = true;
+            }
+        }
+        else
+        {
+            if (isWalking)  // Stop sound only if it was playing
+            {
+                FindAnyObjectByType<AudioManager>().Stop("walk");
+                isWalking = false;
+            }
+        }
     }
+
+    void HandleWalkingSound(float x, float z)
+    {
+        bool isMoving = (x != 0 || z != 0) && isGrounded;
+
+        if (isMoving)
+        {
+            FindAnyObjectByType<AudioManager>().Play("walk");
+        }
+        else if (!isMoving)
+        {
+            FindAnyObjectByType<AudioManager>().Stop("walk");
+        }
+    }
+
 
     void HandleHeadBobbing(float x, float z)
     {

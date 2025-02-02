@@ -5,16 +5,22 @@ using UnityEngine.EventSystems;
 
 public class Pause : MonoBehaviour
 {
-
     public GameObject pauseMenu; // Assign in Inspector
+    public GameObject instuct;   // Assign in Inspector
+
     private bool isPaused = false;
 
-    // Update is called once per frame
+    private void Start()
+    {
+        LockCursor(); // Ensure cursor is locked at start
+    }
+
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            TogglePause();
+         TogglePause();
         }
     }
 
@@ -24,27 +30,45 @@ public class Pause : MonoBehaviour
 
         if (isPaused)
         {
-            Time.timeScale = 0f; // Pause game
-            pauseMenu.SetActive(true); // Show pause menu
-            Cursor.lockState = CursorLockMode.None; // Unlock cursor
-            Cursor.visible = true; // Make cursor visible
-            EventSystem.current.SetSelectedGameObject(null);
+            PauseGame();
         }
         else
         {
-            Time.timeScale = 1f; // Resume game
-            pauseMenu.SetActive(false); // Hide pause menu
-            Cursor.lockState = CursorLockMode.Locked; // Lock cursor
-            Cursor.visible = false; // Hide cursor
+            ResumeGame();
         }
     }
-    public void Resume()
+
+    public void PlayHoverSound()
     {
-        pauseMenu.SetActive(false);
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.Locked; // Lock cursor
-        Cursor.visible = false; // Hide cursor
+        FindAnyObjectByType<AudioManager>().Play("hover");
+    }
+    void PauseGame()
+    {
+        FindAnyObjectByType<AudioManager>().Play("button");
+        Time.timeScale = 0f; // Pause game
+        pauseMenu.SetActive(true); // Show pause menu
+        UnlockCursor();
+        EventSystem.current.SetSelectedGameObject(null);
+    }
+
+    public void ResumeGame()
+    {
+        FindAnyObjectByType<AudioManager>().Play("button");
+        Time.timeScale = 1f; // Resume game
+        pauseMenu.SetActive(false); // Hide pause menu
+        LockCursor();
         isPaused = false;
     }
 
+    void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void UnlockCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
 }

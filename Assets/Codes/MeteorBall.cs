@@ -26,5 +26,6 @@ public class MeteorBall : MonoBehaviour
 
         // Unhide the object by setting it active
         colliderObject.SetActive(true);
+        FindAnyObjectByType<AudioManager>().Play("explosion");
     }
 }

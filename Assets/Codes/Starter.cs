@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Starter : MonoBehaviour
 {
@@ -12,7 +13,58 @@ public class Starter : MonoBehaviour
     public GameObject aura;
     public GameObject self;
     public GameObject bosshealth;
+    public Image imageComponent;
+    public GameObject imageObject;
+    private float fadeDuration = 2.0f;
+    public GameObject gameboss;
 
+    private void Start()
+    {
+        FindAnyObjectByType<AudioManager>().Play("main");
+    }
+    IEnumerator FadeInOutImage()
+    {
+        imageObject.SetActive(true);
+
+        // Ensure the image is initially hidden
+        Color color = imageComponent.color;
+        color.a = 0f;
+        imageComponent.color = color;
+
+        // Gradually increase the alpha value to fade in
+        float elapsedTime = 0f;
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            color.a = Mathf.Clamp01(elapsedTime / fadeDuration);
+            imageComponent.color = color;
+            yield return null;
+        }
+
+        // Ensure the image is fully visible
+        color.a = 1f;
+        imageComponent.color = color;
+
+        // Wait for a moment before fading out (optional)
+        yield return new WaitForSeconds(1f);
+
+        // Gradually decrease the alpha value to fade out
+        elapsedTime = 0f;
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            color.a = Mathf.Clamp01(1 - (elapsedTime / fadeDuration));
+            imageComponent.color = color;
+            yield return null;
+        }
+
+        // Ensure the image is fully invisible before deactivating
+        color.a = 0f;
+        imageComponent.color = color;
+        imageObject.SetActive(false);
+        gameboss.SetActive(true);
+        self.SetActive(false);
+    }
     private void OnTriggerEnter(Collider other)
     {
         // Check if the player triggers the boss activation
@@ -25,6 +77,23 @@ public class Starter : MonoBehaviour
 
             // Start moving the boss smoothly to the finish point with hover effect
             StartCoroutine(MoveBossWithHoverEffect());
+            if (imageObject != null)
+            {
+                imageComponent = imageObject.GetComponent<Image>();
+                if (imageComponent != null)
+                {
+                    // Start the coroutine to fade in the image
+                    StartCoroutine(FadeInOutImage());
+                }
+                else
+                {
+                    Debug.LogError("The assigned imageObject does not have an Image component.");
+                }
+            }
+            else
+            {
+                Debug.LogError("No imageObject assigned in the Inspector.");
+            }
         }
     }
 
@@ -66,7 +135,10 @@ public class Starter : MonoBehaviour
 
         // Ensure final exact position
         boss.transform.position = finishPoint.position;
-        aura.SetActive(true);
-        self.SetActive(false);   
+        aura.SetActive(true);  
+    }
+    private void OnDisable()
+    {
+        FindAnyObjectByType<AudioManager>().Stop("main");
     }
 }

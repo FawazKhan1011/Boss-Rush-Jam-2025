@@ -27,6 +27,8 @@ public class SmokeChase : MonoBehaviour
 
     void OnEnable()
     {
+        FindAnyObjectByType<AudioManager>().Play("smoke");
+        FindAnyObjectByType<AudioManager>().Play("heart");
         if (agent == null)
         {
             Debug.LogError("NavMeshAgent is not assigned to SmokeChase.");
@@ -147,6 +149,7 @@ public class SmokeChase : MonoBehaviour
     }
     private void OnDisable()
     {
+        FindAnyObjectByType<AudioManager>().Stop("heart");
         fog.SetActive(false);
         isChasing = false;
 
