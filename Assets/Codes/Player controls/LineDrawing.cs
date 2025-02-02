@@ -17,6 +17,7 @@ public class LineDrawing : MonoBehaviour
     private Vector3 centerPoint;
     private float lastCollisionCheckTime = 0f; // Track time for collision checks
 
+
     public Boss bossScript;
 
     void Start()
@@ -81,7 +82,7 @@ public class LineDrawing : MonoBehaviour
         }
     }
 
-    void EndLine()
+   public void EndLine()
     {
         isDrawing = false;
 
@@ -168,5 +169,16 @@ public class LineDrawing : MonoBehaviour
         lineRenderer.positionCount = 0;
         linePoints.Clear();
         isShrinking = false;
+    }
+    public void InstantClearLine()
+    {
+        if (isDrawing)
+        {
+            FindAnyObjectByType<AudioManager>().Play("glass1");
+        }
+        lineRenderer.positionCount = 0; // Remove the line visually
+        linePoints.Clear(); // Clear all the points
+        isDrawing = false; // Stop drawing
+        isShrinking = false; // Stop shrinking
     }
 }

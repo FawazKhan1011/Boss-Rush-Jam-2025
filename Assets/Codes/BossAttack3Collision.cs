@@ -26,7 +26,7 @@ public class BossAttack3Collision : MonoBehaviour
             // Deal damage to the player
             if (playerref != null)
             {
-                playerref.doDamage(1);
+                StartCoroutine(delaydamage(1.2f));
             }
 
             // Start the cooldown timer
@@ -34,6 +34,12 @@ public class BossAttack3Collision : MonoBehaviour
         }
     }
 
+    private IEnumerator delaydamage(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        playerref.doDamage(1);
+
+    }
     private IEnumerator ResetTriggerAfterDelay(string triggerName, float delay)
     {
         // Wait for the specified delay before resetting the trigger

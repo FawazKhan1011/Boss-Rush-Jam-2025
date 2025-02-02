@@ -1,8 +1,13 @@
 using System.Collections;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Boss : MonoBehaviour
 {
+    public PlayerMovement player;
+    public GameObject bodycollider;
+    public GameObject aura;
     public int maxHealth = 10; // Maximum health of the boss
     public int currentHealth; // Current health of the boss
     public BossHealth health; // Reference to the health UI system
@@ -20,8 +25,10 @@ public class Boss : MonoBehaviour
 
     [Header("Attack Timers")]
     public float afterAttackDelay = 2f; // Delay before generating another attack
+    public float initialDelay = 15f; // Delay before the attack cycle starts
 
     private bool isAttacking = false;
+    public GameObject blackscreen;
 
     void Start()
     {
@@ -42,7 +49,16 @@ public class Boss : MonoBehaviour
             animator.SetTrigger("idle_combat");
         }
 
-        // Start the attack cycle
+        // Start the attack cycle after the initial delay
+        StartCoroutine(StartAttackCycleWithDelay());
+    }
+
+    private IEnumerator StartAttackCycleWithDelay()
+    {
+        Debug.Log($"Waiting for initial delay: {initialDelay} seconds.");
+        yield return new WaitForSeconds(initialDelay);
+
+        Debug.Log("Initial delay complete. Starting attack cycle.");
         StartCoroutine(AttackCycle());
     }
 
@@ -77,30 +93,113 @@ public class Boss : MonoBehaviour
 
     void Die()
     {
+        bodycollider.SetActive(false);
+        aura.SetActive(false);
         DeactivateAllAttacks();
+
         // Play the "Die" animation
         if (animator != null)
         {
             animator.SetTrigger("dead");
         }
+
         Debug.Log("Boss has been defeated!");
+
+        // Wait for a few seconds after the death animation
+        StartCoroutine(HandlePostDeathSequence(0.4f)); // Pass the speed and the wait time
+        StartCoroutine(BlackScreen());
+        StartCoroutine(DelayedSceneChange(15f, "Win"));
     }
+
+    public IEnumerator DelayedSceneChange(float delay, string scene)
+    {
+        yield return new WaitForSeconds(delay);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(scene); // Change to "death" scene
+    }
+
+    public IEnumerator BlackScreen()
+    {
+        yield return new WaitForSeconds(12f);
+        Image img = blackscreen.GetComponent<Image>(); // Get the Image component
+        if (img == null) yield break;
+
+        blackscreen.SetActive(true); // Ensure it's active before fading
+        Color color = img.color;
+        color.a = 0f;  // Start fully transparent
+        img.color = color;
+
+        float duration = 0.8f; // Fade duration
+        float elapsed = 0f; // Start elapsed time at 0
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            color.a = Mathf.Lerp(0f, 1f, elapsed / duration); // Gradually increase alpha
+            img.color = color;
+            yield return null;
+        }
+
+        color.a = 1f;  // Ensure it is fully visible at the end
+        img.color = color;
+    }
+
+    private IEnumerator HandlePostDeathSequence(float speed)
+    {
+        // Wait for the death animation to play for a given time
+        yield return new WaitForSeconds(10f);  // Adjust this based on your animation length
+
+        // Smoothly shift the boss downwards in Y position
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = new Vector3(startPos.x, startPos.y - 10f, startPos.z); // Adjust the downward distance
+
+        float elapsedTime = 0f;
+
+        // Disable the animator to avoid it overriding position
+        if (animator != null)
+        {
+            animator.enabled = false;
+        }
+
+        while (elapsedTime < 1f)  // Duration based on speed
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, elapsedTime * speed);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        StartCoroutine(Deadboss());
+    }
+
+    private IEnumerator Deadboss()
+    {
+        yield return new WaitForSeconds(5f);
+        // Disable the boss GameObject
+        gameObject.SetActive(false);
+    }
+
 
     private IEnumerator AttackCycle()
     {
+        int lastAttackChoice = -1; // Store the last attack choice
+
         while (currentHealth > 0) // Continue attacking while the boss is alive
         {
             if (!isAttacking)
             {
                 isAttacking = true;
 
-                // Generate a random attack
-                int attackChoice = Random.Range(1, 4);
+                int attackChoice;
+                do
+                {
+                    attackChoice = Random.Range(1, 4); // Generate a new attack choice
+                } while (attackChoice == lastAttackChoice); // Ensure it's not the same as the last one
+
+                lastAttackChoice = attackChoice; // Update the last attack choice
                 Debug.Log($"Generated attack: {attackChoice}");
 
                 // Activate the chosen attack
                 float attackDuration = GetAttackDuration(attackChoice);
                 yield return StartCoroutine(ActivateAttack(attackChoice, attackDuration));
+
                 // Wait for the after-attack delay before generating the next attack
                 yield return new WaitForSeconds(afterAttackDelay);
 
@@ -110,6 +209,7 @@ public class Boss : MonoBehaviour
             yield return null;
         }
     }
+
 
     private IEnumerator ActivateAttack(int attackChoice, float duration)
     {

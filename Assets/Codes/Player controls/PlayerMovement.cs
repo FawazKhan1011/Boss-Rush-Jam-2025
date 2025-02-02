@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -70,9 +72,11 @@ public class PlayerMovement : MonoBehaviour
     public int currentHealth;
     public int maxHealth = 10;
     public Slider slider;
-
+    public LineDrawing lineDrawing;
     Vector3 velocity;
     bool isGrounded;
+    public GameObject bloodEffect; // Assign in the inspector
+    public GameObject blackscreen;
 
     void Start()
     {
@@ -184,9 +188,135 @@ public class PlayerMovement : MonoBehaviour
 
     public void doDamage(int damage)
     {
+        int randomSound = Random.Range(1, 4); // Generates a random number between 1 and 3
+        FindAnyObjectByType<AudioManager>().Play("retro");
+
+        // Play different sounds based on the random number
+        switch (randomSound)
+        {
+            case 1:
+                FindAnyObjectByType<AudioManager>().Play("hurt1");
+                break;
+            case 2:
+                FindAnyObjectByType<AudioManager>().Play("hurt2");
+                break;
+            case 3:
+                FindAnyObjectByType<AudioManager>().Play("hurt3");
+                break;
+        }
+
+        lineDrawing.InstantClearLine();
+
+        if (bloodEffect != null)
+        {
+            bloodEffect.SetActive(true); // Activate blood effect
+            StartCoroutine(FadeOutBlood()); // Start fading effect
+        }
+
+        StartCoroutine(CameraShake(0.3f, 0.4f)); // Shake for 0.2s with 0.2 intensity
+
         currentHealth -= damage;
         SetHealth(currentHealth);
+
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
     }
+
+    // Camera Shake Coroutine
+    private IEnumerator CameraShake(float duration, float magnitude)
+    {
+        Vector3 originalPosition = cameraTransform.localPosition;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
+            cameraTransform.localPosition = new Vector3(originalPosition.x + x, originalPosition.y + y, originalPosition.z);
+
+            elapsed += Time.deltaTime;
+            yield return null; // Wait for the next frame
+        }
+
+        cameraTransform.localPosition = originalPosition; // Reset camera position
+    }
+
+
+    private void Die()
+    {
+        Debug.Log("Player has died!");
+
+        this.enabled = false;
+        controller.enabled = false;
+
+        FindAnyObjectByType<AudioManager>().Play("death");
+
+        // Optionally show game over UI
+        // gameOverScreen.SetActive(true); // Uncomment if you have a Game Over screen
+        blackscreen.SetActive(true);
+        StartCoroutine(BlackScreen());
+        StartCoroutine(DelayedSceneChange(2f, "Death")); // Wait 5 seconds before changing scene
+    }
+
+    public IEnumerator DelayedSceneChange(float delay, string scene)
+    {
+        yield return new WaitForSeconds(delay);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(scene); // Change to "death" scene
+    }
+
+    public IEnumerator BlackScreen()
+    {
+        Image img = blackscreen.GetComponent<Image>(); // Get the Image component
+        if (img == null) yield break;
+
+        blackscreen.SetActive(true); // Ensure it's active before fading
+        Color color = img.color;
+        color.a = 0f;  // Start fully transparent
+        img.color = color;
+
+        float duration = 0.8f; // Fade duration
+        float elapsed = 0f; // Start elapsed time at 0
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            color.a = Mathf.Lerp(0f, 1f, elapsed / duration); // Gradually increase alpha
+            img.color = color;
+            yield return null;
+        }
+
+        color.a = 1f;  // Ensure it is fully visible at the end
+        img.color = color;
+    }
+
+
+    private IEnumerator FadeOutBlood()
+    {
+        Image img = bloodEffect.GetComponent<Image>(); // Get the Image component
+        if (img == null) yield break;
+
+        bloodEffect.SetActive(true); // Ensure it's active before fading
+        Color color = img.color;
+        color.a = 1f;  // Ensure it starts fully visible
+        img.color = color;
+
+        float duration = 0.6f; // Fade duration
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            color.a = Mathf.Lerp(1f, 0f, elapsed / duration); // Reduce alpha over time
+            img.color = color;
+            yield return null;
+        }
+
+        bloodEffect.SetActive(false); // Disable once fully faded
+    }
+
+
 
     public void SetMaxHealth(int health)
     {

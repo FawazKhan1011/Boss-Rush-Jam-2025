@@ -6,39 +6,42 @@ public class MeteorAttack : MonoBehaviour
 {
     public Animator animator;
     public float animationtime;
-    public Transform center;            // The center of the attack circle
-    public GameObject meteorPrefab;     // Prefab of the meteor to spawn
-    public float circleRadius = 10f;    // Radius of the circle where meteors will spawn
-    public int meteorCount = 8;         // Number of meteors to spawn
-    public float meteorLifetime = 5f;  // Time (in seconds) before meteors are deactivated
-    public float spawnInterval = 0.5f; // Time between spawning meteors
-    public float raycastDistance = 50f; // Max distance for the raycast to check for ground
-    public LayerMask groundLayer;       // Layer mask for detecting the ground
-    public float fixedSpawnHeight = 10f; // Fixed height from which meteors are spawned before raycasting
+    public Transform center;
+    public GameObject meteorPrefab;
+    public float circleRadius = 10f;
+    public int meteorCount = 8;
+    public float meteorLifetime = 5f;
+    public float spawnInterval = 0.5f;
+    public float raycastDistance = 50f;
+    public LayerMask groundLayer;
+    public float fixedSpawnHeight = 10f;
 
-    private Queue<GameObject> meteorPool; // Pool of meteors for reuse
-    private int poolSize = 20;           // Size of the pool
+    private Queue<GameObject> meteorPool;
+    private int poolSize = 20;
 
-    private void Start()
+    void OnEnable()
     {
-        // Initialize the pool
-        InitializePool();
+        if (meteorPool == null || meteorPool.Count == 0)
+        {
+            InitializePool();
+        }
 
-        // Start spawning meteors
         StartCoroutine(SpawnMeteors());
+
         if (animator == null)
         {
             animator = GetComponent<Animator>();
-            if (animator == null)
-            {
-                Debug.LogError("Animator component is missing! Assign it to the Boss.");
-            }
         }
+
         if (animator != null)
         {
             animator.SetTrigger("attack_long");
-            Debug.Log("Attack 2");
+            Debug.Log("Playing attack animation");
             StartCoroutine(ResetTriggerAfterDelay("attack_long", animationtime));
+        }
+        else
+        {
+            Debug.LogError("Animator component is missing!");
         }
     }
 
@@ -49,7 +52,7 @@ public class MeteorAttack : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             GameObject meteor = Instantiate(meteorPrefab);
-            meteor.SetActive(false); // Deactivate initially
+            meteor.SetActive(false);
             meteorPool.Enqueue(meteor);
         }
     }
@@ -58,21 +61,14 @@ public class MeteorAttack : MonoBehaviour
     {
         for (int i = 0; i < meteorCount; i++)
         {
-            // Get a meteor from the pool
             GameObject meteor = GetPooledMeteor();
 
             if (meteor != null)
             {
-                // Get a random position within the circle, at the fixed spawn height
                 Vector3 randomPosition = GetRandomPositionInCircle(center.position, circleRadius, fixedSpawnHeight);
-
-                // Adjust position to align with the ground below
                 Vector3 groundPosition = AdjustToGround(randomPosition);
 
-                // Set meteor position
                 meteor.transform.position = groundPosition;
-
-                // Activate the meteor and schedule deactivation
                 meteor.SetActive(true);
                 StartCoroutine(DeactivateMeteor(meteor, meteorLifetime));
             }
@@ -88,46 +84,44 @@ public class MeteorAttack : MonoBehaviour
             return meteorPool.Dequeue();
         }
 
-        Debug.LogWarning("Meteor pool is empty! Consider increasing the pool size.");
+        Debug.LogWarning("Meteor pool is empty! Increase pool size.");
         return null;
     }
 
     private IEnumerator DeactivateMeteor(GameObject meteor, float delay)
     {
         yield return new WaitForSeconds(delay);
-
-        // Deactivate and return the meteor to the pool
         meteor.SetActive(false);
         meteorPool.Enqueue(meteor);
     }
 
     private Vector3 GetRandomPositionInCircle(Vector3 centerPosition, float radius, float height)
     {
-        // Generate a random point within a circle
         Vector2 randomPoint = Random.insideUnitCircle * radius;
         return new Vector3(centerPosition.x + randomPoint.x, height, centerPosition.z + randomPoint.y);
     }
 
     private Vector3 AdjustToGround(Vector3 spawnPosition)
     {
-        // Cast a ray downward to find the ground
         if (Physics.Raycast(spawnPosition, Vector3.down, out RaycastHit hit, raycastDistance, groundLayer))
         {
-            // Adjust spawn position to the point where the ray hits the ground
             return hit.point;
         }
 
-        Debug.LogWarning("No ground detected below the spawn position!");
-        return new Vector3(spawnPosition.x, 0, spawnPosition.z); // Default to y = 0 if no ground is found
+        Debug.LogWarning("No ground detected below spawn position!");
+        return new Vector3(spawnPosition.x, 0, spawnPosition.z);
     }
+
     private IEnumerator ResetTriggerAfterDelay(string triggerName, float delay)
     {
         yield return new WaitForSeconds(delay);
+
         if (animator != null)
         {
             animator.ResetTrigger(triggerName);
         }
     }
+
     private void OnDrawGizmos()
     {
         if (center != null)
@@ -136,4 +130,29 @@ public class MeteorAttack : MonoBehaviour
             Gizmos.DrawWireSphere(center.position, circleRadius);
         }
     }
+    private void OnDisable()
+    {
+        // Reset the animation trigger
+        if (animator != null)
+        {
+            animator.ResetTrigger("attack_long");
+        }
+
+        // Stop all coroutines related to the meteor attack
+        StopAllCoroutines();
+
+        // Ensure all meteors are deactivated
+        foreach (GameObject meteor in FindObjectsOfType<GameObject>())
+        {
+            if (meteor.activeSelf && meteor.CompareTag("Meteor")) // Check for active meteors by tag
+            {
+                meteor.SetActive(false);
+            }
+        }
+
+        Debug.Log("All active meteors disabled, and animation reset.");
+    }
+
+
+
 }
